@@ -88,11 +88,15 @@ namespace GaussianSplatting.Editor
             GUILayout.Space(30);
             if (GUILayout.Button($"Create {m_allFiles.Count} Assets"))
             {
+                float progress = 0.0f;
                 foreach (var plyFile in m_allFiles)
                 {
                     CreateAsset(plyFile);
+                    progress += 1.0f / m_allFiles.Count;
+                    EditorUtility.DisplayProgressBar("Creating 3DGS Assets", $"Creating {plyFile}", progress);
                 }
             }
+            EditorUtility.ClearProgressBar();
             GUILayout.Space(30);
             GUILayout.EndHorizontal();
 
