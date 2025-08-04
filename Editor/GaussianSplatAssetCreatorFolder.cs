@@ -84,7 +84,6 @@ namespace GaussianSplatting.Editor
             }
             
             EditorGUILayout.Space();
-            GUILayout.BeginHorizontal();
             GUILayout.Space(30);
             if (GUILayout.Button($"Create {m_allFiles.Count} Assets"))
             {
@@ -98,7 +97,6 @@ namespace GaussianSplatting.Editor
             }
             EditorUtility.ClearProgressBar();
             GUILayout.Space(30);
-            GUILayout.EndHorizontal();
 
             if (!string.IsNullOrWhiteSpace(m_ErrorMessage))
             {
@@ -164,9 +162,12 @@ namespace GaussianSplatting.Editor
             asset.name = baseName;
 
             var dataHash = new Hash128((uint)asset.splatCount, (uint)asset.formatVersion, 0, 0);
-            string pathPos = $"{m_OutputFolder}/{baseName}_pos.bytes";
-            string pathOther = $"{m_OutputFolder}/{baseName}_oth.bytes";
-            string pathCol = $"{m_OutputFolder}/{baseName}_col.bytes";
+            string pathPos = $"{m_OutputFolder}/3DGS_assets/{baseName}_pos.bytes";
+            string pathOther = $"{m_OutputFolder}/3DGS_assets/{baseName}_oth.bytes";
+            string pathCol = $"{m_OutputFolder}/3DGS_assets/{baseName}_col.bytes";
+            Directory.CreateDirectory(Path.Combine(m_OutputFolder, "3DGS_assets"));
+            Directory.CreateDirectory(Path.Combine(m_OutputFolder, "3DGS_prefabs"));
+
             
             CreatePositionsData(inputSplats, pathPos, ref dataHash);
             CreateOtherData(inputSplats, pathOther, ref dataHash);//, splatSHIndices);
@@ -182,12 +183,19 @@ namespace GaussianSplatting.Editor
                 AssetDatabase.LoadAssetAtPath<TextAsset>(pathCol)
                 );
 
-            var assetPath = $"{m_OutputFolder}/{baseName}.asset";
+            var assetPath = $"{m_OutputFolder}/3DGS_assets/{baseName}.asset";
             var savedAsset = CreateOrReplaceAsset(asset, assetPath);
 
             AssetDatabase.SaveAssets();
-
-
+            GameObject gaussianPrefab = new GameObject(baseName);
+            gaussianPrefab.tag = "MainCamera";
+            
+            gaussianPrefab.AddComponent<GaussianSplatRenderer>();
+            GaussianSplatRenderer gaussianRenderer = gaussianPrefab.GetComponent<GaussianSplatRenderer>();
+            gaussianRenderer.SetAsset(savedAsset);
+            
+            PrefabUtility.SaveAsPrefabAsset(gaussianPrefab, $"{m_OutputFolder}/3DGS_prefabs/{baseName}.prefab");
+            DestroyImmediate(gaussianPrefab);
             Selection.activeObject = savedAsset;
         }
 

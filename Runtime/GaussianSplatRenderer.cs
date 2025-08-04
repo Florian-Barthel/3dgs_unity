@@ -14,7 +14,7 @@ using UnityEngine.XR;
 
 namespace GaussianSplatting.Runtime
 {
-    class GaussianSplatRenderSystem
+    public class GaussianSplatRenderSystem
     {
         // ReSharper disable MemberCanBePrivate.Global - used by HDRP/URP features that are not always compiled
         internal static readonly ProfilerMarker s_ProfDraw = new(ProfilerCategory.Render, "GaussianSplat.Draw", MarkerFlags.SampleGPU);
@@ -363,6 +363,11 @@ namespace GaussianSplatting.Runtime
         public bool HasValidRenderSetup => m_GpuPosData != null && m_GpuOtherData != null && m_GpuChunks != null;
 
         const int kGpuViewDataSize = 40;
+
+        public void SetAsset(GaussianSplatAsset asset)
+        {
+            m_Asset = asset;
+        }
 
         void CreateResourcesForAsset()
         {
