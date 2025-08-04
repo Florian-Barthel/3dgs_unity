@@ -139,7 +139,6 @@ namespace GaussianSplatting.Editor
             }
             Directory.CreateDirectory(m_OutputFolder);
 
-            EditorUtility.DisplayProgressBar(kProgressTitle, "Reading data files", 0.0f);
             using NativeArray<InputSplatData> inputSplats = LoadInputSplatFile(ply_file);
             if (inputSplats.Length == 0)
             {
@@ -156,12 +155,10 @@ namespace GaussianSplatting.Editor
             };
             boundsJob.Schedule().Complete();
 
-            EditorUtility.DisplayProgressBar(kProgressTitle, "Morton reordering", 0.05f);
             ReorderMorton(inputSplats, boundsMin, boundsMax);
 
             string baseName = Path.GetFileNameWithoutExtension(FilePickerControl.PathToDisplayString(ply_file));
 
-            EditorUtility.DisplayProgressBar(kProgressTitle, "Creating data objects", 0.7f);
             GaussianSplatAsset asset = ScriptableObject.CreateInstance<GaussianSplatAsset>();
             asset.Initialize(inputSplats.Length, m_FormatPos, m_FormatScale, m_FormatColor, boundsMin, boundsMax);
             asset.name = baseName;
@@ -177,10 +174,8 @@ namespace GaussianSplatting.Editor
             asset.SetDataHash(dataHash);
 
             // files are created, import them so we can get to the imported objects, ugh
-            EditorUtility.DisplayProgressBar(kProgressTitle, "Initial texture import", 0.85f);
             AssetDatabase.Refresh(ImportAssetOptions.ForceUncompressedImport);
 
-            EditorUtility.DisplayProgressBar(kProgressTitle, "Setup data onto asset", 0.95f);
             asset.SetAssetFiles(
                 AssetDatabase.LoadAssetAtPath<TextAsset>(pathPos),
                 AssetDatabase.LoadAssetAtPath<TextAsset>(pathOther),
@@ -190,9 +185,8 @@ namespace GaussianSplatting.Editor
             var assetPath = $"{m_OutputFolder}/{baseName}.asset";
             var savedAsset = CreateOrReplaceAsset(asset, assetPath);
 
-            EditorUtility.DisplayProgressBar(kProgressTitle, "Saving assets", 0.99f);
             AssetDatabase.SaveAssets();
-            EditorUtility.ClearProgressBar();
+
 
             Selection.activeObject = savedAsset;
         }
