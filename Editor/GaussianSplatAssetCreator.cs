@@ -94,7 +94,7 @@ namespace GaussianSplatting.Editor
             GUILayout.Space(30);
             if (GUILayout.Button("Create Asset"))
             {
-                CreateAsset();
+                CreateAsset(m_InputFile);
             }
             GUILayout.Space(30);
             GUILayout.EndHorizontal();
@@ -122,12 +122,12 @@ namespace GaussianSplatting.Editor
             return result;
         }
 
-        unsafe void CreateAsset()
+        unsafe void CreateAsset(String ply_file)
         {
             m_ErrorMessage = null;
-            if (string.IsNullOrWhiteSpace(m_InputFile))
+            if (string.IsNullOrWhiteSpace(ply_file))
             {
-                m_ErrorMessage = $"Select input PLY/SPZ file";
+                m_ErrorMessage = $"Select input PLY file";
                 return;
             }
 
@@ -138,8 +138,7 @@ namespace GaussianSplatting.Editor
             }
             Directory.CreateDirectory(m_OutputFolder);
 
-            EditorUtility.DisplayProgressBar(kProgressTitle, "Reading data files", 0.0f);
-            using NativeArray<InputSplatData> inputSplats = LoadInputSplatFile(m_InputFile);
+            using NativeArray<InputSplatData> inputSplats = LoadInputSplatFile(ply_file);
             if (inputSplats.Length == 0)
             {
                 EditorUtility.ClearProgressBar();
@@ -155,20 +154,21 @@ namespace GaussianSplatting.Editor
             };
             boundsJob.Schedule().Complete();
 
-            EditorUtility.DisplayProgressBar(kProgressTitle, "Morton reordering", 0.05f);
             ReorderMorton(inputSplats, boundsMin, boundsMax);
 
-            string baseName = Path.GetFileNameWithoutExtension(FilePickerControl.PathToDisplayString(m_InputFile));
+            string baseName = Path.GetFileNameWithoutExtension(FilePickerControl.PathToDisplayString(ply_file));
 
-            EditorUtility.DisplayProgressBar(kProgressTitle, "Creating data objects", 0.7f);
             GaussianSplatAsset asset = ScriptableObject.CreateInstance<GaussianSplatAsset>();
             asset.Initialize(inputSplats.Length, m_FormatPos, m_FormatScale, m_FormatColor, boundsMin, boundsMax);
             asset.name = baseName;
 
             var dataHash = new Hash128((uint)asset.splatCount, (uint)asset.formatVersion, 0, 0);
-            string pathPos = $"{m_OutputFolder}/{baseName}_pos.bytes";
-            string pathOther = $"{m_OutputFolder}/{baseName}_oth.bytes";
-            string pathCol = $"{m_OutputFolder}/{baseName}_col.bytes";
+            string pathPos = $"{m_OutputFolder}/3DGS_assets/{baseName}_pos.bytes";
+            string pathOther = $"{m_OutputFolder}/3DGS_assets/{baseName}_oth.bytes";
+            string pathCol = $"{m_OutputFolder}/3DGS_assets/{baseName}_col.bytes";
+            Directory.CreateDirectory(Path.Combine(m_OutputFolder, "3DGS_assets"));
+            Directory.CreateDirectory(Path.Combine(m_OutputFolder, "3DGS_prefabs"));
+
             
             CreatePositionsData(inputSplats, pathPos, ref dataHash);
             CreateOtherData(inputSplats, pathOther, ref dataHash);//, splatSHIndices);
@@ -176,23 +176,27 @@ namespace GaussianSplatting.Editor
             asset.SetDataHash(dataHash);
 
             // files are created, import them so we can get to the imported objects, ugh
-            EditorUtility.DisplayProgressBar(kProgressTitle, "Initial texture import", 0.85f);
             AssetDatabase.Refresh(ImportAssetOptions.ForceUncompressedImport);
 
-            EditorUtility.DisplayProgressBar(kProgressTitle, "Setup data onto asset", 0.95f);
             asset.SetAssetFiles(
                 AssetDatabase.LoadAssetAtPath<TextAsset>(pathPos),
                 AssetDatabase.LoadAssetAtPath<TextAsset>(pathOther),
                 AssetDatabase.LoadAssetAtPath<TextAsset>(pathCol)
                 );
 
-            var assetPath = $"{m_OutputFolder}/{baseName}.asset";
+            var assetPath = $"{m_OutputFolder}/3DGS_assets/{baseName}.asset";
             var savedAsset = CreateOrReplaceAsset(asset, assetPath);
 
-            EditorUtility.DisplayProgressBar(kProgressTitle, "Saving assets", 0.99f);
             AssetDatabase.SaveAssets();
-            EditorUtility.ClearProgressBar();
-
+            GameObject gaussianPrefab = new GameObject(baseName);
+            gaussianPrefab.tag = "MainCamera";
+            
+            gaussianPrefab.AddComponent<GaussianSplatRenderer>();
+            GaussianSplatRenderer gaussianRenderer = gaussianPrefab.GetComponent<GaussianSplatRenderer>();
+            gaussianRenderer.SetAsset(savedAsset);
+            
+            PrefabUtility.SaveAsPrefabAsset(gaussianPrefab, $"{m_OutputFolder}/3DGS_prefabs/{baseName}.prefab");
+            DestroyImmediate(gaussianPrefab);
             Selection.activeObject = savedAsset;
         }
 
