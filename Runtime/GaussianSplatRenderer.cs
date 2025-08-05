@@ -140,8 +140,6 @@ namespace GaussianSplatting.Runtime
                 mpb.SetBuffer(GaussianSplatRenderer.Props.SplatChunks, gs.m_GpuChunks);
                 mpb.SetBuffer(GaussianSplatRenderer.Props.SplatViewData, gs.m_GpuView);
                 mpb.SetBuffer(GaussianSplatRenderer.Props.OrderBuffer, gs.m_GpuSortKeys);
-                mpb.SetFloat(GaussianSplatRenderer.Props.SplatScale, gs.m_SplatScale);
-                mpb.SetFloat(GaussianSplatRenderer.Props.SplatOpacityScale, gs.m_OpacityScale);
                 mpb.SetFloat(GaussianSplatRenderer.Props.SplatSize, gs.m_PointDisplaySize);
                 mpb.SetInteger(GaussianSplatRenderer.Props.DisplayIndex, gs.m_RenderMode == GaussianSplatRenderer.RenderMode.DebugPointIndices ? 1 : 0);
                 mpb.SetInteger(GaussianSplatRenderer.Props.DisplayChunks, gs.m_RenderMode == GaussianSplatRenderer.RenderMode.DebugChunkBounds ? 1 : 0);
@@ -229,13 +227,8 @@ namespace GaussianSplatting.Runtime
 
         [Tooltip("Rendering order compared to other splats. Within same order splats are sorted by distance. Higher order splats render 'on top of' lower order splats.")]
         public int m_RenderOrder;
-        [Range(0.1f, 2.0f)] [Tooltip("Additional scaling factor for the splats")]
-        public float m_SplatScale = 1.0f;
-        [Range(0.05f, 20.0f)]
-        [Tooltip("Additional scaling factor for opacity")]
-        public float m_OpacityScale = 1.0f;
-        [Range(1,100)] [Tooltip("Sort splats only every N frames")]
-        public int m_SortNthFrame = 1;
+        //[Range(1,100)] [Tooltip("Sort splats only every N frames")]
+        public int m_SortNthFrame = 2;
 
         public RenderMode m_RenderMode = RenderMode.Splats;
         [Range(1.0f,15.0f)] public float m_PointDisplaySize = 3.0f;
@@ -594,8 +587,6 @@ namespace GaussianSplatting.Runtime
 
             cmb.SetComputeVectorParam(m_CSSplatUtilities, Props.VecScreenParams, screenPar);
             cmb.SetComputeVectorParam(m_CSSplatUtilities, Props.VecWorldSpaceCameraPos, camPos);
-            cmb.SetComputeFloatParam(m_CSSplatUtilities, Props.SplatScale, m_SplatScale);
-            cmb.SetComputeFloatParam(m_CSSplatUtilities, Props.SplatOpacityScale, m_OpacityScale);
 
             m_CSSplatUtilities.GetKernelThreadGroupSizes((int)KernelIndices.CalcViewData, out uint gsX, out _, out _);
             cmb.DispatchCompute(m_CSSplatUtilities, (int)KernelIndices.CalcViewData, (m_GpuView.count + (int)gsX - 1)/(int)gsX, 1, 1);
