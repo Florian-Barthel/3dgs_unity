@@ -229,9 +229,6 @@ namespace GaussianSplatting.Editor
             asset.name = baseName;
 
             var dataHash = new Hash128((uint)asset.splatCount, (uint)asset.formatVersion, 0, 0);
-            string pathPos = $"{m_OutputFolder}/3DGS_assets/{baseName}_pos.bytes";
-            string pathOther = $"{m_OutputFolder}/3DGS_assets/{baseName}_oth.bytes";
-            string pathCol = $"{m_OutputFolder}/3DGS_assets/{baseName}_col.bytes";
             Directory.CreateDirectory(Path.Combine(m_OutputFolder, "3DGS_assets"));
             Directory.CreateDirectory(Path.Combine(m_OutputFolder, "3DGS_assets/rest"));
             Directory.CreateDirectory(Path.Combine(m_OutputFolder, "3DGS_assets/C"));
@@ -244,6 +241,44 @@ namespace GaussianSplatting.Editor
             Directory.CreateDirectory(Path.Combine(m_OutputFolder, "3DGS_prefabs/A"));
             Directory.CreateDirectory(Path.Combine(m_OutputFolder, "3DGS_prefabs/perpetrator"));
             
+
+            var prefabPath = $"{m_OutputFolder}/3DGS_prefabs/rest/{baseName}.prefab";
+
+            var assetPath       = $"{m_OutputFolder}/3DGS_assets/rest/{baseName}.asset";
+            string pathPos      = $"{m_OutputFolder}/3DGS_assets/rest/{baseName}_pos.bytes";
+            string pathOther    = $"{m_OutputFolder}/3DGS_assets/rest/{baseName}_oth.bytes";
+            string pathCol      = $"{m_OutputFolder}/3DGS_assets/rest/{baseName}_col.bytes";
+
+            if (a.Contains(baseName))
+            {
+                Debug.Log("A " + baseName);
+                assetPath   = $"{m_OutputFolder}/3DGS_assets/A/A{baseName}.asset";
+                pathPos     = $"{m_OutputFolder}/3DGS_assets/A/A{baseName}_pos.bytes";
+                pathOther   = $"{m_OutputFolder}/3DGS_assets/A/A{baseName}_oth.bytes";
+                pathCol     = $"{m_OutputFolder}/3DGS_assets/A/A{baseName}_col.bytes";
+                prefabPath  = $"{m_OutputFolder}/3DGS_prefabs/A/A{baseName}.prefab";
+            }
+            
+            if (c.Contains(baseName))
+            {
+                Debug.Log("C " + baseName);
+                assetPath   = $"{m_OutputFolder}/3DGS_assets/C/C{baseName}.asset";
+                pathPos     = $"{m_OutputFolder}/3DGS_assets/C/C{baseName}_pos.bytes";
+                pathOther   = $"{m_OutputFolder}/3DGS_assets/C/C{baseName}_oth.bytes";
+                pathCol     = $"{m_OutputFolder}/3DGS_assets/C/C{baseName}_col.bytes";
+                prefabPath  = $"{m_OutputFolder}/3DGS_prefabs/C/C{baseName}.prefab";
+            }
+            
+            if (perpetratorDict.ContainsKey(baseName))
+            {
+                Debug.Log("P " + baseName);
+                assetPath   = $"{m_OutputFolder}/3DGS_assets/perpetrator/{perpetratorDict[baseName]}_perpetrator.asset";
+                pathPos     = $"{m_OutputFolder}/3DGS_assets/perpetrator/{perpetratorDict[baseName]}_pos.bytes";
+                pathOther   = $"{m_OutputFolder}/3DGS_assets/perpetrator/{perpetratorDict[baseName]}_oth.bytes";
+                pathCol     = $"{m_OutputFolder}/3DGS_assets/perpetrator/{perpetratorDict[baseName]}_col.bytes";
+                prefabPath  = $"{m_OutputFolder}/3DGS_prefabs/perpetrator/{perpetratorDict[baseName]}_perpetrator.prefab";
+            }
+
             CreatePositionsData(inputSplats, pathPos, ref dataHash);
             CreateOtherData(inputSplats, pathOther, ref dataHash);//, splatSHIndices);
             CreateColorData(inputSplats, pathCol, ref dataHash);
@@ -257,32 +292,6 @@ namespace GaussianSplatting.Editor
                 AssetDatabase.LoadAssetAtPath<TextAsset>(pathOther),
                 AssetDatabase.LoadAssetAtPath<TextAsset>(pathCol)
                 );
-            
-            var assetPath = $"{m_OutputFolder}/3DGS_assets/rest/{baseName}.asset";
-            var prefabPath = $"{m_OutputFolder}/3DGS_prefabs/rest/{baseName}.prefab";
-
-            if (a.Contains(baseName))
-            {
-                Debug.Log("A " + baseName);
-                assetPath = $"{m_OutputFolder}/3DGS_assets/A/A{baseName}.asset";
-                prefabPath = $"{m_OutputFolder}/3DGS_prefabs/A/A{baseName}.prefab";
-
-            }
-            
-            if (c.Contains(baseName))
-            {
-                Debug.Log("C " + baseName);
-                assetPath = $"{m_OutputFolder}/3DGS_assets/C/C{baseName}.asset";
-                prefabPath = $"{m_OutputFolder}/3DGS_prefabs/C/C{baseName}.prefab";
-
-            }
-            
-            if (perpetratorDict.ContainsKey(baseName))
-            {
-                Debug.Log("P " + baseName);
-                assetPath = $"{m_OutputFolder}/3DGS_assets/perpetrator/{perpetratorDict[baseName]}_perpetrator.asset";
-                prefabPath = $"{m_OutputFolder}/3DGS_prefabs/perpetrator/{perpetratorDict[baseName]}_perpetrator.prefab";
-            }
             
 
             var savedAsset = CreateOrReplaceAsset(asset, assetPath);
