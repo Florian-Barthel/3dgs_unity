@@ -235,7 +235,7 @@ namespace GaussianSplatting.Runtime
         [Tooltip("Additional scaling factor for opacity")]
         public float m_OpacityScale = 1.0f;
         [Range(1,100)] [Tooltip("Sort splats only every N frames")]
-        public int m_SortNthFrame = 1;
+        public int m_SortNthFrame = 2;
 
         public RenderMode m_RenderMode = RenderMode.Splats;
         [Range(1.0f,15.0f)] public float m_PointDisplaySize = 3.0f;
